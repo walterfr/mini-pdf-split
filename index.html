@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mini PDF Split - Divisor de Páginas de Livros</title>
+    <meta name="description" content="Divida páginas duplas de PDFs digitalizados de forma automática e gratuita." />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <div class="logo-container">
+          <div class="icon-wrapper">
+            <i data-lucide="book-open-check"></i>
+          </div>
+          <h1>Mini PDF Split</h1>
+        </div>
+        <p class="subtitle">Transforme páginas duplas em páginas individuais perfeitamente organizadas.</p>
+      </header>
+
+      <main>
+        <div class="card glass">
+          <div id="drop-zone" class="drop-zone">
+            <input type="file" id="file-input" accept="application/pdf" hidden />
+            <div class="drop-zone-content">
+              <i data-lucide="upload-cloud" class="upload-icon"></i>
+              <p>Arraste seu PDF aqui ou <span>clique para buscar</span></p>
+              <p class="file-info">Apenas arquivos .pdf são suportados</p>
+            </div>
+          </div>
+
+          <div id="file-details" class="file-details hidden">
+            <div class="file-meta">
+              <i data-lucide="file-text"></i>
+              <span id="file-name">nome-do-arquivo.pdf</span>
+              <span id="file-size" class="badge">0 MB</span>
+            </div>
+            <button id="remove-file" class="btn-icon">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+
+          <div class="options-grid">
+            <div class="option-group">
+              <label>Direção do Corte</label>
+              <div class="radio-group">
+                <label class="radio-card">
+                  <input type="radio" name="split-direction" value="vertical" checked />
+                  <div class="radio-content">
+                    <i data-lucide="columns-2"></i>
+                    <span>Vertical (Livro)</span>
+                  </div>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="split-direction" value="horizontal" />
+                  <div class="radio-content">
+                    <i data-lucide="rows-2"></i>
+                    <span>Horizontal</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button id="process-btn" class="btn-primary" disabled>
+            <i data-lucide="scissors"></i>
+            Processar e Baixar
+          </button>
+
+          <div id="progress-container" class="progress-container hidden">
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <p id="progress-status">Processando páginas...</p>
+          </div>
+        </div>
+
+        <section class="info-section">
+          <div class="info-card">
+            <h3>Privacidade Total</h3>
+            <p>Seu PDF é processado inteiramente no seu navegador. Nada é enviado para nossos servidores.</p>
+          </div>
+          <div class="info-card">
+            <h3>Simples e Rápido</h3>
+            <p>Ideal para livros digitalizados "abertos" onde cada página do PDF contém duas páginas do livro.</p>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>Feito com ♥ para facilitar sua leitura.</p>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
