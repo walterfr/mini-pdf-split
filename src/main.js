@@ -1,5 +1,5 @@
 import './style.css';
-import { createIcons, BookOpenCheck, UploadCloud, FileText, X, Scissors, Columns2, Rows2 } from 'lucide';
+import { createIcons, BookOpenCheck, UploadCloud, FileText, X, Scissors, Columns2, Rows2, FileBadge2 } from 'lucide';
 import { PDFDocument } from 'pdf-lib';
 
 // Initialize Lucide icons
@@ -11,7 +11,8 @@ createIcons({
     X,
     Scissors,
     Columns2,
-    Rows2
+    Rows2,
+    FileBadge2
   }
 });
 
@@ -95,12 +96,19 @@ processBtn.addEventListener('click', async () => {
     
     const pages = pdfDoc.getPages();
     const splitDirection = document.querySelector('input[name="split-direction"]:checked').value;
+    const skipFirstPage = document.getElementById('skip-first-page').checked;
     
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
       const { width, height } = page.getSize();
       
       updateProgress(10 + (i / pages.length) * 80, `Processando página ${i + 1} de ${pages.length}...`);
+
+      if (i === 0 && skipFirstPage) {
+        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [0]);
+        newPdfDoc.addPage(copiedPage);
+        continue;
+      }
 
       if (splitDirection === 'vertical') {
         // Vertical Split (Book style)

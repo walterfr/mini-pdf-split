@@ -205,6 +205,39 @@ h1 {
   color: var(--primary);
 }
 
+.checkbox-group {
+  margin-top: 1rem;
+}
+
+.checkbox-card {
+  position: relative;
+  cursor: pointer;
+  display: block;
+}
+
+.checkbox-card input {
+  position: absolute;
+  opacity: 0;
+}
+
+.checkbox-content {
+  border: 1px solid var(--glass-border);
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.checkbox-card input:checked + .checkbox-content {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
 .btn-primary {
   width: 100%;
   background: var(--primary);
