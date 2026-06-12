@@ -205,6 +205,31 @@ h1 {
   color: var(--primary);
 }
 
+.select-input {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.select-input:focus {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.select-input option {
+  background-color: #0f172a;
+  color: var(--text-main);
+}
+
 .checkbox-group {
   margin-top: 1rem;
 }

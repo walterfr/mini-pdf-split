@@ -1,6 +1,6 @@
 import './style.css';
 import { createIcons, BookOpenCheck, UploadCloud, FileText, X, Scissors, Columns2, Rows2, FileBadge2 } from 'lucide';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, degrees } from 'pdf-lib';
 
 // Initialize Lucide icons
 createIcons({
@@ -97,18 +97,37 @@ processBtn.addEventListener('click', async () => {
     const pages = pdfDoc.getPages();
     const splitDirection = document.querySelector('input[name="split-direction"]:checked').value;
     const skipFirstPage = document.getElementById('skip-first-page').checked;
+    const rotationAngle = parseInt(document.getElementById('rotation-angle').value);
     
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
-      const { width, height } = page.getSize();
       
+      if (rotationAngle !== 0) {
+        const currentRotation = page.getRotation().angle;
+        page.setRotation(degrees(currentRotation + rotationAngle));
+      }
+
       updateProgress(10 + (i / pages.length) * 80, `Processando página ${i + 1} de ${pages.length}...`);
 
       if (i === 0 && skipFirstPage) {
-        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [0]);
-        newPdfDoc.addPage(copiedPage);
+        // Se a página foi rotacionada, não podemos usar copyPages porque ele copia do pdfDoc original.
+        // O ideal é adicionar a página rotacionada usando o fluxo de embedPage para "queimar" a rotação na nova página.
+        const embeddedPage = await newPdfDoc.embedPage(page);
+        const originalPage = newPdfDoc.addPage([embeddedPage.width, embeddedPage.height]);
+        originalPage.drawPage(embeddedPage, {
+          width: embeddedPage.width,
+          height: embeddedPage.height,
+          x: 0,
+          y: 0,
+        });
         continue;
       }
+
+      const embeddedPage1 = await newPdfDoc.embedPage(page);
+      const embeddedPage2 = await newPdfDoc.embedPage(page);
+      
+      const width = embeddedPage1.width;
+      const height = embeddedPage1.height;
 
       if (splitDirection === 'vertical') {
         // Vertical Split (Book style)
@@ -116,7 +135,6 @@ processBtn.addEventListener('click', async () => {
         
         // Left Page
         const leftPage = newPdfDoc.addPage([halfWidth, height]);
-        const embeddedPage1 = await newPdfDoc.embedPage(page);
         leftPage.drawPage(embeddedPage1, {
           width: width,
           height: height,
@@ -126,7 +144,6 @@ processBtn.addEventListener('click', async () => {
 
         // Right Page
         const rightPage = newPdfDoc.addPage([halfWidth, height]);
-        const embeddedPage2 = await newPdfDoc.embedPage(page);
         rightPage.drawPage(embeddedPage2, {
           width: width,
           height: height,
@@ -139,7 +156,6 @@ processBtn.addEventListener('click', async () => {
         
         // Top Page
         const topPage = newPdfDoc.addPage([width, halfHeight]);
-        const embeddedPage1 = await newPdfDoc.embedPage(page);
         topPage.drawPage(embeddedPage1, {
           width: width,
           height: height,
@@ -149,7 +165,6 @@ processBtn.addEventListener('click', async () => {
 
         // Bottom Page
         const bottomPage = newPdfDoc.addPage([width, halfHeight]);
-        const embeddedPage2 = await newPdfDoc.embedPage(page);
         bottomPage.drawPage(embeddedPage2, {
           width: width,
           height: height,
