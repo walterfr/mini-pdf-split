@@ -101,77 +101,70 @@ processBtn.addEventListener('click', async () => {
     
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
-      
-      if (rotationAngle !== 0) {
-        const currentRotation = page.getRotation().angle;
-        page.setRotation(degrees(currentRotation + rotationAngle));
-      }
-
       updateProgress(10 + (i / pages.length) * 80, `Processando página ${i + 1} de ${pages.length}...`);
 
       if (i === 0 && skipFirstPage) {
-        // Se a página foi rotacionada, não podemos usar copyPages porque ele copia do pdfDoc original.
-        // O ideal é adicionar a página rotacionada usando o fluxo de embedPage para "queimar" a rotação na nova página.
-        const embeddedPage = await newPdfDoc.embedPage(page);
-        const originalPage = newPdfDoc.addPage([embeddedPage.width, embeddedPage.height]);
-        originalPage.drawPage(embeddedPage, {
-          width: embeddedPage.width,
-          height: embeddedPage.height,
-          x: 0,
-          y: 0,
-        });
+        const [copiedPage] = await newPdfDoc.copyPages(pdfDoc, [i]);
+        if (rotationAngle !== 0) {
+          const currentRot = copiedPage.getRotation().angle;
+          copiedPage.setRotation(degrees(currentRot + rotationAngle));
+        }
+        newPdfDoc.addPage(copiedPage);
         continue;
       }
 
-      const embeddedPage1 = await newPdfDoc.embedPage(page);
-      const embeddedPage2 = await newPdfDoc.embedPage(page);
+      const [page1, page2] = await newPdfDoc.copyPages(pdfDoc, [i, i]);
       
-      const width = embeddedPage1.width;
-      const height = embeddedPage1.height;
+      const box = page.getCropBox() || page.getMediaBox();
+      const { x, y, width, height } = box;
+      
+      const hw = width / 2;
+      const hh = height / 2;
+
+      // Definir os CropBoxes baseados na orientação e rotação desejada
+      let crop1, crop2;
 
       if (splitDirection === 'vertical') {
-        // Vertical Split (Book style)
-        const halfWidth = width / 2;
-        
-        // Left Page
-        const leftPage = newPdfDoc.addPage([halfWidth, height]);
-        leftPage.drawPage(embeddedPage1, {
-          width: width,
-          height: height,
-          x: 0,
-          y: 0,
-        });
-
-        // Right Page
-        const rightPage = newPdfDoc.addPage([halfWidth, height]);
-        rightPage.drawPage(embeddedPage2, {
-          width: width,
-          height: height,
-          x: -halfWidth,
-          y: 0,
-        });
-      } else {
-        // Horizontal Split
-        const halfHeight = height / 2;
-        
-        // Top Page
-        const topPage = newPdfDoc.addPage([width, halfHeight]);
-        topPage.drawPage(embeddedPage1, {
-          width: width,
-          height: height,
-          x: 0,
-          y: -halfHeight,
-        });
-
-        // Bottom Page
-        const bottomPage = newPdfDoc.addPage([width, halfHeight]);
-        bottomPage.drawPage(embeddedPage2, {
-          width: width,
-          height: height,
-          x: 0,
-          y: 0,
-        });
+        if (rotationAngle === 0) {
+          crop1 = { x, y, width: hw, height }; // Left
+          crop2 = { x: x + hw, y, width: hw, height }; // Right
+        } else if (rotationAngle === 90) {
+          crop1 = { x, y, width, height: hh }; // Bottom
+          crop2 = { x, y: y + hh, width, height: hh }; // Top
+        } else if (rotationAngle === 270 || rotationAngle === -90) {
+          crop1 = { x, y: y + hh, width, height: hh }; // Top
+          crop2 = { x, y, width, height: hh }; // Bottom
+        } else if (rotationAngle === 180) {
+          crop1 = { x: x + hw, y, width: hw, height }; // Right
+          crop2 = { x, y, width: hw, height }; // Left
+        }
+      } else { // horizontal
+        if (rotationAngle === 0) {
+          crop1 = { x, y: y + hh, width, height: hh }; // Top
+          crop2 = { x, y, width, height: hh }; // Bottom
+        } else if (rotationAngle === 90) {
+          crop1 = { x, y, width: hw, height }; // Left
+          crop2 = { x: x + hw, y, width: hw, height }; // Right
+        } else if (rotationAngle === 270 || rotationAngle === -90) {
+          crop1 = { x: x + hw, y, width: hw, height }; // Right
+          crop2 = { x, y, width: hw, height }; // Left
+        } else if (rotationAngle === 180) {
+          crop1 = { x, y, width, height: hh }; // Bottom
+          crop2 = { x, y: y + hh, width, height: hh }; // Top
+        }
       }
+
+      page1.setCropBox(crop1.x, crop1.y, crop1.width, crop1.height);
+      page2.setCropBox(crop2.x, crop2.y, crop2.width, crop2.height);
+
+      if (rotationAngle !== 0) {
+        const currentRot = page1.getRotation().angle;
+        page1.setRotation(degrees(currentRot + rotationAngle));
+        page2.setRotation(degrees(currentRot + rotationAngle));
+      }
+
+      newPdfDoc.addPage(page1);
+      newPdfDoc.addPage(page2);
     }
 
     updateProgress(95, 'Gerando arquivo final...');
